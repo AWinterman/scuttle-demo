@@ -1,5 +1,5 @@
 {
-  "name": "ScuttleDemo",
+  "name": "scuttledemo",
   "version": "0.0.0",
   "description": "A demo of the simple-scuttle module",
   "main": "index.js",
