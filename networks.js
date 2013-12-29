@@ -1,11 +1,15 @@
-var Gossip = require('simple-scuttle')
+var Gossip = require('simple-scuttle').gossip
   , stream = require('stream')
   , inherit = require('util').inherits
   , EE = require('events').EventEmitter
 
-var base = require('simple-scuttle/base').config
 
-base.resolve = require('simple-scuttle/base').resolution.lww_vs_current_vers
+var base = {}
+
+base.mtu = 10
+base.max_history = 10
+base.sort = sort
+base.resolve = lww_vs_current_vers
 
 module.exports = {}
 module.exports.Ring = Ring
@@ -181,3 +185,32 @@ function keys_n(self) {
 function id(i) {
   return String.fromCharCode(97 + i)
 }
+
+function sort(A, B) {
+  var Afirst
+
+  if(A.version === B.version) {
+    Afirst = A.source_id < B.source_id
+  } else {
+    Afirst = A.version < B.version
+  }
+
+  return Afirst ? -1 : 1
+}
+
+// Last write wins, but compared against the current version of the key in the
+// gossip's state.
+function lww_vs_current_vers(gossip, update) {
+  var last_seen = gossip.get(update.key).version
+    , current_value = gossip.get(update.key).value
+    , current
+
+  current = {}
+  current.key = update.key
+  current.value = current_value === null ? update.value : current_value
+  current.source_id = gossip.id
+  current.version = last_seen
+
+  return sort(update, current) > 0
+}
+
