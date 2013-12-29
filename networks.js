@@ -1,7 +1,11 @@
-var Gossip = require('../../index')
+var Gossip = require('simple-scuttle')
   , stream = require('stream')
   , inherit = require('util').inherits
   , EE = require('events').EventEmitter
+
+var base = require('simple-scuttle/base').config
+
+base.resolve = require('simple-scuttle/base').resolution.lww_vs_current_vers
 
 module.exports = {}
 module.exports.Ring = Ring
@@ -17,7 +21,8 @@ inherit(Pair, EE)
 inherit(PairConflict, EE)
 inherit(Random, EE)
 
-function Ring(n, mtu, history) {
+function Ring(n, config) {
+  config = config || base
   EE.call(this)
 
   this.nodes = []
@@ -25,7 +30,7 @@ function Ring(n, mtu, history) {
 
   for(var i = 0; i < n; ++i) {
     this.nodes[i] = {
-        gossip: new Gossip(id(i), mtu, history)
+        gossip: new Gossip(id(i), config)
     }
   }
 
@@ -50,7 +55,8 @@ function Ring(n, mtu, history) {
   keys_n(this, this.nodes)
 }
 
-function RingConflict(n, mtu, history) {
+function RingConflict(n, config) {
+  config = config || base
   EE.call(this)
 
   this.nodes = []
@@ -60,10 +66,10 @@ function RingConflict(n, mtu, history) {
 
   for(var i = 0; i < halfn; i++) {
     this.nodes[i] = {
-        gossip: new Gossip(id(i), mtu, history)
+        gossip: new Gossip(id(i), config)
     }
     this.nodes[i + halfn] = {
-        gossip: new Gossip(id(i), mtu, history)
+        gossip: new Gossip(id(i), config)
     }
   }
 
@@ -88,7 +94,8 @@ function RingConflict(n, mtu, history) {
   }
 }
 
-function Random(n, mtu, history) {
+function Random(n, config) {
+  config = config || base
   EE.call(this)
 
   this.nodes = []
@@ -97,7 +104,7 @@ function Random(n, mtu, history) {
   var i = 0
   while(this.nodes.length < n) {
     i++
-    this.nodes.push({gossip: new Gossip(id(i), mtu, history)})
+    this.nodes.push({gossip: new Gossip(id(i), config)})
   }
 
   while(this.links.length < n) {
@@ -121,11 +128,12 @@ function Random(n, mtu, history) {
   keys_n(this, this.nodes)
 }
 
-function PairConflict(mtu, history) {
+function PairConflict(config) {
+  config = config || base
   EE.call(this)
 
-  var A = {gossip: new Gossip('A')}
-    , B = {gossip: new Gossip('A')}
+  var A = {gossip: new Gossip('A', config)}
+    , B = {gossip: new Gossip('A', config)}
 
   this.nodes = [A, B]
   this.links = [{source: A, target: B}]
@@ -135,11 +143,12 @@ function PairConflict(mtu, history) {
   keys_n(this, this.nodes)
 }
 
-function Pair(mtu, history) {
+function Pair(config) {
+  config = config || base
   EE.call(this)
 
-  var A = {gossip: new Gossip('A')}
-    , B = {gossip: new Gossip('B')}
+  var A = {gossip: new Gossip('A', config)}
+    , B = {gossip: new Gossip('B', config)}
 
   this.nodes = [A, B]
   this.links = [{source: A, target: B}]

@@ -10,7 +10,14 @@
     "scuttlebutt",
     "demo"
   ],
-  "url": "https://github.com/AWinterman/scuttle-demo.git",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AWinterman/scuttle-demo.git"
+  },
   "author": "Andrew Winterman",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "d3": "~3.3.13",
+    "simple-scuttle": "~2.0.0"
+  }
 }
